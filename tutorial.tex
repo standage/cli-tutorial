@@ -1,0 +1,455 @@
+\documentclass{article}
+\usepackage{minted}
+\usepackage[margin=1in]{geometry}
+\usepackage{url}
+\usepackage{lipsum}
+\begin{document}
+
+\title{Designing command-line interfaces (CLIs) for scientific software}
+\author{Daniel S. Standage \textless daniel.standage@gmail.com\textgreater}
+\maketitle
+
+\begin{abstract}
+One very important consideration when writing scientific software is how the user will interact with it: what is the expected input, what is the expected output, how to list and adjust settings, etc. A lot of scientific software is prototypical, and often you don't need (or want) to invest much time upfront worrying about such design issues when you may never use that particular script or program ever again. However, if you have \textit{that one script or program} that you keep coming back to, or (more importantly) if you are planning to distribute your code for general use (within your lab, within the community, etc), then these sorts of questions are very important to consider.
+
+Unfortunately, there is little investment in teaching these types of skills in academic science since there is such intense competition over resources and so few incentives to actually write good software. However, investing that little bit of extra effort can make a huge difference in someone else's ability to actually use the software. That \textit{somebody} could be your advisor or lab mate, a reviewer on a paper you have submitted, that one professor in the department on your tenure review committee, or even a future version of yourself after having worked on a different project for 6 months and trying to remember what the heck the ``cutoff" setting on your old script does. Taking the time to design and document a simple, usable command-line interface for your software can save hours and hours of frustration for yourself and others in the future.
+
+Here I discuss some common CLI design conventions commonly used in scientific software, as well as the principles underlying these conventions.
+\end{abstract}
+
+\tableofcontents
+\clearpage
+
+\section{An example}
+Imagine for a moment that you have spent several weeks writing a program to analyze your data, and that the code for your program sits in a file named \texttt{runanalysis}.
+When you enter the command
+\begin{verbatim}
+./runanalysis
+\end{verbatim}
+in your terminal, this program loads data from two different files (\texttt{reads.bam} and \texttt{genes.bed}), filters the data based on some cutoff, analyzes the data, and prints a short report to a new text file called \texttt{report.txt}.
+
+For this example, what is the command-line interface for the \texttt{runanalysis} program?
+Essentially, there is none---all you can do from the command line is execute the program.
+\textit{Changing how the program works}, however (such as loading different input files, using a different cutoff value, or printing the report to a different output file) requires you to modify the source code of your program.
+
+This is a hypothetical situation, but a lot of research software begins this way.
+There is nothing necessarily \textit{wrong} with implementing software as described above, but there are a few simple things you can do with its CLI that will drastically improve the program's usability, as will be discussed hereafter.
+
+\section{Arguments, options, and configuration files}
+
+\subsection{Command-line arguments}
+Going back to our example, imagine if instead of using the command \texttt{./runanalysis} to execute the software, you used something like the following.
+\begin{verbatim}
+./runanalysis reads.bam genes.bed 0.5 report.txt
+\end{verbatim}
+That way if you want to analyze different input files (\texttt{uni-reads.bam} and \texttt{genes-hq.bed} for example) or a different cutoff value (\texttt{0.75} for example), you would not have to change the program's source code---instead, you would change the command you run on the command line like so.
+\begin{verbatim}
+./runanalysis uni-reads.bam genes-hq.bed 0.75 report.txt
+\end{verbatim}
+The values on the command line that follow the name of the script or program that you run are called \textbf{arguments}.
+Every programming language provides a way to accessing these arguments from within your script or program.
+One very simple thing you can do to improve the usability and re-usability of your program is to use arguments to store the value of your input and output files, rather than ``hard-coding" those filenames directly in your source code.
+
+\subsection{Options and option parsing}
+In the previous example, we used a command line argument to set a cutoff value to be used by the program. Imagine if you later decide that there are 5 or 6 additional program parameters that you would like to be able to set from the command line. Are you going to have to provide 9 or 10 arguments to the \texttt{runanalysis} program every time you run it? How will you remember the correct order of the arguments?
+
+One common approach to addressing this issue is the use of \textbf{options} and \textbf{option parsing}. Options are simply command-line arguments (typically grouped in key/value pairs), while option parsing refers to the process of reading the command-line arguments and adjusting program settings as needed. Using option parsing for your program means that you set default values for certain settings in your program, and you only need to provide values for those settings on the command line if you want to use something different from the default. For example, if we used option parsing in our hypothetical script, we could set \texttt{0.5} as the default value for the cutoff, and \texttt{report.txt} as the default value for the output file. Executing the command
+\begin{verbatim}
+./runanalysis --cutoff=0.75 --output=new-report.txt reads.bam genes.bed
+\end{verbatim}
+would override the defaults for both the cutoff and the output file, the command
+\begin{verbatim}
+./runanalysis --cutoff=0.75 reads.bam genes.bed
+\end{verbatim}
+would override only the cutoff, the command
+\begin{verbatim}
+./runanalysis --output=new-report.txt reads.bam genes.bed
+\end{verbatim}
+would override only the output file, whereas the command
+\begin{verbatim}
+./runanalysis reads.bam genes.bed
+\end{verbatim}
+would use the defaults for both. Note that in each case, the names of the input files had to be provided explicitly, and in the correct order. In option parsing, these are called \textbf{positional arguments}. A good (and commonly used) interface design is to use a mix of options and positional arguments: positional arguments for values that \textit{must} be provided and for which no suitable default can be used (such as the name of a data file), and options for program parameters for which a reasonable default can be used, which any given user may or may not want to override.
+
+All common programming languages include libraries for parsing arguments, and they are usually pretty flexible in their support of different conventions for option syntax, such as the following.
+
+\begin{minted}{bash}
+# Each option has the form `-xyyyy', where `-x' is a key uniquely identifying
+# the option and `yyyy' is the supplied value for that option
+yourprogram -mupdate -onew.csv input.dat
+
+# Same as previous example, but with a space between the option key and the option value
+yourprogram -m update -o new.csv input.dat
+
+# Longer, more descriptive option keys, separated from values with a space
+yourprogram --mode update --output new.csv input.dat
+
+# Longer, more descriptive option keys, separated from values with a `=' character
+yourprogram --mode=update --output=new.csv input.dat
+
+# Many option parsers will even allow you to specify both short and long keys for each option
+yourprogram --mode update -o new.csv input.dat
+\end{minted}
+
+The appendix provides examples for how to use readily available option parsers in a variety of common programming languages.
+
+\subsection{Configuration files}
+Command-line options and arguments can provide a usable and flexible interface, but only to a point. There is an inverse relationship between the number of arguments as user is expected to provide and the usability of the interface---that is, more arguments, less usability (more frustration, more chances for mistakes, etc). If your software expects the user to explicitly provide values for tens of program parameters, then arguments and options may not provide the best interface. Instead, you may consider using a configuration file: a plain text file in which the user sets values for program parameters.
+
+Consider another hypothetical program, which is run using the following command.
+\begin{verbatim}
+./simulation 1000 10000 5000 0.6666 2.5 0.2 0.0001 -1.37 25000 bayes obs.dat spec.dat
+\end{verbatim}
+With 12 arguments, this command is beginning to get pretty bulky.
+It is already hard to read, and typing out the command on the command line is error-prone.
+Imagine instead if we modified the program so that it read parameter values from a configuration file...
+\begin{minted}{text}
+xlim:      1000
+ylim:      10000
+zlim:      5000
+rate:      0.6666
+magnitude: 2.5
+gamma:     0.2
+delta:     0.0001
+mu:        -1.37
+duration:  25000
+method:    bayes
+observe:   obs.dat
+spectra:   spec.dat
+\end{minted}
+...and was executed on the command line like this.
+\begin{verbatim}
+./simulation sim.conf
+\end{verbatim}
+You could even implement a hybrid approach, where most parameters are set in the config file but some options/arguments are still passed via the command line.
+\begin{verbatim}
+./simulation --conf sim.conf --out results.sim obs.dat spec.dat
+\end{verbatim}
+
+The config file approach removes the complexity of parameter configuration from the command line and delegates it primarily to a configuration file. Of course this has its pros and cons. On one hand, it is less likely you will be able to run the program on multiple data sets without editing the config file or creating a new one (very similar to one of the original motivating use cases). On the other hand, complex parameter configurations can be easier to manage in a text editor than on the command line, and a configuration file provides a record of the particular analysis performed which is readily available for future reference.
+
+How many arguments/options is too many for the command line? At what point is it better to use a configuration file? There is no one right answer to this question, as it depends on a variety of factors (not the least of which is your preference as the scientist writing the software). It is safe to say that a complex program with hundreds of parameters should definitely use a configuration file, whereas for a relatively simple program with 3-5 parameters a config file is probably overkill. As you evaluate the alternatives, consider the parameters for which reasonable default values can be determined, as this can drastically reduce the complexity of the interface as well as the user's configuration task.
+
+\section{Standard input (stdin), standard output (stdout), and standard error (stderr)}
+Many data processing tasks can be broken down into a sequence of smaller tasks. The output of one data processing subtask serves as the input for the next subtask. Many programs and UNIX commands write their output to the terminal by default. The \texttt{print} function and its relatives found in all common programming languages allow you to print to the terminal in two ways: the standard output (\texttt{stdout}) and the standard error (\texttt{stderr}). When running a program on the command line, you can use the \texttt{>} symbol to redirect any output written to \texttt{stdout} or \texttt{stderr} to a file for subsequent processing (see this quick demo at \url{http://ascii.io/a/2235}).
+
+However, an alternative to writing output to intermediate files for subsequent processing tasks is to direct the output of one program or command directly into another program or command using the \texttt{|} symbol (pipe). This paradigm is commonly used by UNIX commands. Consider the following set of commands.
+
+\begin{minted}{text}
+cut -f 3 input.txt > output1.txt
+sort output1.txt > output2.txt
+uniq -c output2.txt > output3.txt
+sort -rn output3.txt > finaloutput.txt
+\end{minted}
+Four processing commands are run, and 3 intermediate files are created in the process. Now consider the alternative approach to performing the same processing task.
+\begin{verbatim}
+cut -f 3 input.txt | sort | uniq -c | sort -rn > finaloutput.txt
+\end{verbatim}
+This single command produces the same output as the original 4 commands.
+
+Implementing your software so that the user can choose whether output is written to a file or to the terminal is one way to improve a program`s command-line interface, especially if the output can be processed line-by-line. This enables users to easily stitch your program together with other programs or shell commands. You can further improve the program's CLI by enabling the user to choose whether to read input from a file or from the standard input (data redirected from another command using the \texttt{|} symbol or from a file using the \texttt{<} symbol).
+
+\section{Usage statement}
+When distributing software, it is imperative to provide documentation along with the code (often stored in \texttt{README} files). Additionally, it is also a common software design practice to implement a ``usage statement" to provide additional, easy access documentation. If the program is executed with the wrong number of arguments, or if the user includes a special flag (typically an option such as \texttt{-h} or \texttt{--help}), then instead of trying to run the program will print a short message to the terminal including a reminder of what arguments the program expects and a description of any parameters that can be adjusted via options. This provides a good reminder not only for others but also for you as the developer and user of your own software!
+
+Below is an example of what a program's usage statement might look like on the command line.
+
+\begin{minted}{text}
+[standage@lappy ~] talesf --help
+Usage: talesf [options] genomeseq ``rvdseq"
+  Options:
+    -f|--forwardonly      only search the forward strand of the genomic sequence
+    -h|--help             print this help message and exit
+    -n|--numprocs         the number of processors to use; default is 1
+    -o|--outfile          file to which output will be written; default is terminal
+                          (stdout)
+    -s|--source           text for the third column of the GFF3 output; default is
+                          TALESF
+    -w|--weight           user-defined weight; default is 0.9
+    -x|--cutoffmult       multiple of best score at which potential sites will be
+                          filtered; default is 3.0
+[standage@lappy ~]
+\end{minted}
+
+\section{Appendix: CLI templates}
+The following examples show the same command-line interface implemented in several programming languages. The programs don't actually do anything other than read options in from the command line. They are intended primarily to serve as a template or reference for implementing a CLI for your own program.
+
+\subsection{Perl CLI}
+
+\begin{minted}{perl}
+#!/usr/bin/env perl
+use strict;
+use Getopt::Long;
+
+sub print_usage
+{
+  my $OUT = shift(@_);
+  print $OUT "Usage: demo [options] data.txt
+  Options:
+    -f|--filter          apply strict filtering
+    -h|--help            print this help message and exit
+    -o|--out: FILE       file to which output will be written;
+                         default is terminal (stdout)
+    -s|--strand: INT     strand to search; provide a positive number for the
+                         forward strand, a negative number for the reverse
+                         strand, or 0 for both strands; default is 0
+    -w|--weight: REAL    user-defined weight; default is 0.9
+"
+}
+
+my $filter    = 0;
+my $outfile   = "";
+my $outstream = \*STDOUT;
+my $strand    = 0;
+my $weight    = 0.9;
+GetOptions
+(
+  "f|filter"   => \$filter,
+  "h|help"     => sub{ print_usage(\*STDOUT); exit(0) },
+  "o|out=s"    => \$outfile,
+  "s|strand=i" => \$strand,
+  "w|weight=f" => \$weight,
+);
+
+if($outfile ne "")
+{
+  open($outstream, ">", $outfile) or die("error opening output file $outfile");
+}
+
+my $instream = \*STDIN;
+my $infile = "";
+if(scalar(@ARGV) > 0)
+{
+  $infile = shift(@ARGV);
+  open($instream, "<", $infile) or die("error opening input file $infile");
+}
+
+while(my $line = <$instream>)
+{
+  chomp($line);
+  # process your input here
+  # use `$outstream' file handle when printing program output
+}
+close($instream);
+close($outstream);
+\end{minted}
+
+\subsection{C CLI}
+
+\begin{minted}{c}
+// compile with `gcc -Wall -o demo demo.c'
+
+#import <getopt.h>
+#import <stdio.h>
+#import <stdlib.h>
+
+typedef int bool;
+#define true 1
+#define false 0
+#define MAX_LINE_WIDTH 1024
+
+void print_usage(FILE *outstream)
+{
+  fprintf( outstream,
+"Usage: demo [options] data.txt\n"
+"  Options:\n"
+"    -f|--filter          apply strict filtering\n"
+"    -h|--help            print this help message and exit\n"
+"    -o|--out: FILE       file to which output will be written;\n"
+"                         default is terminal (stdout)\n"
+"    -s|--strand: INT     strand to search; provide a positive number for the\n"
+"                         forward strand, a negative number for the reverse\n"
+"                         strand, or 0 for both strands; default is 0\n"
+"    -w|--weight: REAL    user-defined weight; default is 0.9\n" );
+}
+
+int main(int argc, char **argv)
+{
+  bool filter = false;
+  const char *outfile = NULL;
+  FILE *outstream = stdout;
+  int strand = 0;
+  float weight = 0.9;
+  
+  int opt = 0;
+  int optindex = 0;
+  const char *optstr = "fho:s:w:";
+  const struct option demo_options[] =
+  {
+    { "filter", no_argument,       NULL, 'f' },
+    { "help",   no_argument,       NULL, 'h' },
+    { "out",    required_argument, NULL, 'o' },
+    { "strand", required_argument, NULL, 's' },
+    { "weight", required_argument, NULL, 'w' },
+    { NULL, no_argument, NULL, 0 },
+  };
+  
+  for( opt = getopt_long(argc, argv, optstr, demo_options, &optindex);
+       opt != -1;
+       opt = getopt_long(argc, argv, optstr, demo_options, &optindex) )
+  {
+    switch(opt)
+    {
+      case 'f':
+        filter = true;
+        break;
+      
+      case 'h':
+        print_usage(stdout);
+        return 0;
+        break;
+      
+      case 'o':
+        outfile = optarg;
+        outstream = fopen(outfile, "w");
+        if(outstream == NULL)
+        {
+          fprintf(stderr, "error opening output file '%s'\n", outfile);
+          return 1;
+        }
+        break;
+      
+      case 's':
+        strand = atoi(optarg);
+        break;
+      
+      case 'w':
+        weight = atof(optarg);
+        break;
+      
+      default:
+        break;
+    }
+  }
+
+  int numargs = argc - optind;
+  const char *infile = NULL;
+  FILE *instream = stdin;
+  if(numargs > 0)
+  {
+    infile = argv[optind];
+    instream = fopen(infile, "r");
+    if(instream == NULL)
+    {
+      fprintf(stderr, "error opening input file '%s'\n", infile);
+      return 1;
+    }
+  }
+  
+  char buffer[MAX_LINE_WIDTH];
+  while(fgets(buffer, MAX_LINE_WIDTH, instream) != NULL)
+  {
+    // process your input here
+    // use `outstream' file handle when printing program output
+  }
+  fclose(instream);
+  fclose(outstream);
+  
+  return 0;
+}
+\end{minted}
+
+\subsection{Python CLI}
+
+\begin{minted}{python}
+#!/usr/bin/env python
+from optparse import OptionParser
+import sys
+
+usage = "Usage: demo [options] data.txt"
+parser = OptionParser(usage=usage)
+parser.add_option("-f", "--filter", dest="filter", action="store_true",
+    default=False, help="apply strict filtering")
+parser.add_option("-o", "--out", dest="outfile", type="string", default=None,
+    help="file to which output will be written; default is terminal (stdout)")
+parser.add_option("-s", "--strand", dest="strand",  type="int", default=0,
+    help="strand to search; provide a positive number for the forward strand, a"
+         " negative number for the revers strand, or 0 for both strands;"
+         " default is 0")
+parser.add_option("-w", "--weight", dest="weight",  type="float", default=0.9,
+    help="user-defined weight; default is 0.9")
+
+(options, args) = parser.parse_args()
+
+options.outstream = sys.stdout
+if options.outfile != None:
+  try:
+    options.outstream = open(options.outfile, "w")
+  except IOError as e:
+    print >> sys.stderr, "error opening output file %s" % options.outfile
+    print >> sys.stderr, e
+    sys.exit()
+
+options.instream = sys.stdin
+if len(args) > 0:
+  options.infile = args[0]
+  try:
+    options.instream = open(options.infile, "r")
+  except IOError as e:
+    print >> sys.stderr, "error opening output file %s" % options.infile
+    print >> sys.stderr, e
+    sys.exit()
+
+for line in options.instream:
+  line.rstrip()
+  # process your input file here
+  # use 'options.outstream' file handle when printing program output
+  
+options.instream.close()
+options.outstream.close()
+\end{minted}
+
+\subsection{Bash CLI}
+
+\begin{minted}{bash}
+#!/usr/bin/env bash
+
+print_usage()
+{
+  cat <<EOF
+Usage: demo [options] data.txt
+  Options:
+    -f    apply strict filtering
+    -h    print this help message and exit
+    -o    file to which output will be written; default is terminal (stdout)
+    -s    strand to search; provide a positive number for the forward strand,
+          a negative number for the reverse strand, or 0 for both strands;
+          default is 0
+    -w    user-defined weight; default is 0.9
+EOF
+}
+
+FILTER=0
+STRAND=0
+WEIGHT=0.9
+while getopts "fho:s:w:" OPTION
+do
+  case $OPTION in
+    f)
+      FILTER=1
+      ;;
+    h)
+      print_usage
+      exit 0
+      ;;
+    o)
+      OUTFILE=$OPTARG
+      ;;
+    s)
+      STRAND=$OPTARG
+      ;;
+    w)
+      WEIGHT=$OPTARG
+      ;;
+  esac
+done
+shift $((OPTIND-1))
+INFILE=$1
+
+# process your input here;
+# shell scripts aren't typically used to process files line-by-line;
+# rather, they call system commands that in turn do the line-by-line processing;
+# if your bash script needs to accept input from stdin, you can use the system
+# file `/dev/stdin' to redirect the contents of the stdin to other commands
+\end{minted}
+\end{document}
