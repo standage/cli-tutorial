@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
+# demo.sh: template for parsing command-line options in Bash
 
 print_usage()
 {
   cat <<EOF
-Usage: demo [options] data.txt
+Usage: demo.sh [options] data.txt
   Options:
     -f    apply strict filtering
     -h    print this help message and exit

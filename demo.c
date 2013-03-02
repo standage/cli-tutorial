@@ -1,5 +1,5 @@
+// demo.c: template for parsing command-line options in C
 // compile with 'gcc -Wall -o demo demo.c'
-
 #import <getopt.h>
 #import <stdio.h>
 #import <stdlib.h>

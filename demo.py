@@ -1,8 +1,9 @@
 #!/usr/bin/env python
+# demo.py: template for parsing command-line options in Python
 from optparse import OptionParser
 import sys
 
-usage = "Usage: demo [options] data.txt"
+usage = "Usage: demo.py [options] data.txt"
 parser = OptionParser(usage=usage)
 parser.add_option("-f", "--filter", dest="filter", action="store_true",
     default=False, help="apply strict filtering")

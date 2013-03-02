@@ -1,10 +1,10 @@
 #!/usr/bin/env Rscript
-# demo.R: template for parsing command-line options
+# demo.R: template for parsing command-line options in R
 library('getopt');
 
 print_usage <- function(file=stderr())
 {
-  cat("Usage: demo [options] --in data.txt
+  cat("Usage: demo.R [options] --in data.txt
   Options:
     -f|--filter          apply strict filtering
     -h|--help            print this help message and exit

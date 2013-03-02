@@ -178,13 +178,14 @@ The following examples show the same command-line interface implemented in sever
 
 \begin{minted}{perl}
 #!/usr/bin/env perl
+# demo.pl: template for parsing command-line options in Perl
 use strict;
 use Getopt::Long;
 
 sub print_usage
 {
   my $OUT = shift(@_);
-  print $OUT "Usage: demo [options] data.txt
+  print $OUT "Usage: demo.pl [options] data.txt
   Options:
     -f|--filter          apply strict filtering
     -h|--help            print this help message and exit
@@ -228,7 +229,7 @@ while(my $line = <$instream>)
 {
   chomp($line);
   # process your input here
-  # use `$outstream' file handle when printing program output
+  # use '$outstream' file handle when printing program output
 }
 close($instream);
 close($outstream);
@@ -237,8 +238,8 @@ close($outstream);
 \subsection{C CLI}
 
 \begin{minted}{c}
-// compile with `gcc -Wall -o demo demo.c'
-
+// demo.c: template for parsing command-line options in C
+// compile with 'gcc -Wall -o demo demo.c'
 #import <getopt.h>
 #import <stdio.h>
 #import <stdlib.h>
@@ -340,7 +341,7 @@ int main(int argc, char **argv)
   while(fgets(buffer, MAX_LINE_WIDTH, instream) != NULL)
   {
     // process your input here
-    // use `outstream' file handle when printing program output
+    // use 'outstream' file handle when printing program output
   }
   fclose(instream);
   fclose(outstream);
@@ -353,10 +354,11 @@ int main(int argc, char **argv)
 
 \begin{minted}{python}
 #!/usr/bin/env python
+# demo.py: template for parsing command-line options in Python
 from optparse import OptionParser
 import sys
 
-usage = "Usage: demo [options] data.txt"
+usage = "Usage: demo.py [options] data.txt"
 parser = OptionParser(usage=usage)
 parser.add_option("-f", "--filter", dest="filter", action="store_true",
     default=False, help="apply strict filtering")
@@ -403,11 +405,12 @@ options.outstream.close()
 
 \begin{minted}{bash}
 #!/usr/bin/env bash
+# demo.sh: template for parsing command-line options in Bash
 
 print_usage()
 {
   cat <<EOF
-Usage: demo [options] data.txt
+Usage: demo.sh [options] data.txt
   Options:
     -f    apply strict filtering
     -h    print this help message and exit
@@ -450,19 +453,19 @@ INFILE=$1
 # shell scripts aren't typically used to process files line-by-line;
 # rather, they call system commands that in turn do the line-by-line processing;
 # if your bash script needs to accept input from stdin, you can use the system
-# file `/dev/stdin' to redirect the contents of the stdin to other commands
+# file '/dev/stdin' to redirect the contents of the stdin to other commands
 \end{minted}
 
 \subsection{R CLI}
 
 \begin{minted}{r}
 #!/usr/bin/env Rscript
-# demo.R: template for parsing command-line options
+# demo.R: template for parsing command-line options in R
 library('getopt');
 
 print_usage <- function(file=stderr())
 {
-  cat("Usage: demo [options] --in data.txt
+  cat("Usage: demo.R [options] --in data.txt
   Options:
     -f|--filter          apply strict filtering
     -h|--help            print this help message and exit

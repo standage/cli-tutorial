@@ -1,11 +1,12 @@
 #!/usr/bin/env perl
+# demo.pl: template for parsing command-line options in Perl
 use strict;
 use Getopt::Long;
 
 sub print_usage
 {
   my $OUT = shift(@_);
-  print $OUT "Usage: demo [options] data.txt
+  print $OUT "Usage: demo.pl [options] data.txt
   Options:
     -f|--filter          apply strict filtering
     -h|--help            print this help message and exit
