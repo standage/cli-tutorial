@@ -3,4 +3,4 @@ tutorial.pdf:
 		pdflatex -shell-escape tutorial
 
 clean:		
-		rm tutorial.aux tutorial.log tutorial.pdf tutorial.toc
+		rm -f tutorial.aux tutorial.log tutorial.pdf tutorial.toc
