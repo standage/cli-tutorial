@@ -2,8 +2,9 @@
 \usepackage{minted}
 \usepackage[margin=1in]{geometry}
 \usepackage{url}
-\usepackage{lipsum}
 \begin{document}
+
+\definecolor{terminalbg}{rgb}{0.95,0.95,0.95}
 
 \title{Designing command-line interfaces (CLIs) for scientific software}
 \author{Daniel S. Standage \textless daniel.standage@gmail.com\textgreater}
@@ -21,14 +22,16 @@ Here I discuss some common CLI design conventions commonly used in scientific so
 \clearpage
 
 \section{An example}
-Imagine for a moment that you have spent several weeks writing a program to analyze your data, and that the code for your program sits in a file named \texttt{runanalysis}.
+Imagine for a moment that you have spent several weeks writing a program to analyze your data, and that the code for your program sits in a file named \texttt{\textbf{runanalysis}}.
 When you enter the command
-\begin{verbatim}
+\\ \\
+\begin{minted}[bgcolor=terminalbg]{text}
 ./runanalysis
-\end{verbatim}
-in your terminal, this program loads data from two different files (\texttt{reads.bam} and \texttt{genes.bed}), filters the data based on some cutoff, analyzes the data, and prints a short report to a new text file called \texttt{report.txt}.
+\end{minted}
+\\
+in your terminal, this program loads data from two different files (\texttt{\textbf{reads.bam}} and \texttt{g\textbf{enes.bed}}), filters the data based on some cutoff, analyzes the data, and prints a short report to a new text file called \texttt{\textbf{report.txt}}.
 
-For this example, what is the command-line interface for the \texttt{runanalysis} program?
+For this example, what is the command-line interface for the \texttt{\textbf{runanalysis}} program?
 Essentially, there is none---all you can do from the command line is execute the program.
 \textit{Changing how the program works}, however (such as loading different input files, using a different cutoff value, or printing the report to a different output file) requires you to modify the source code of your program.
 
@@ -38,58 +41,74 @@ There is nothing necessarily \textit{wrong} with implementing software as descri
 \section{Arguments, options, and configuration files}
 
 \subsection{Command-line arguments}
-Going back to our example, imagine if instead of using the command \texttt{./runanalysis} to execute the software, you used something like the following.
-\begin{verbatim}
+Going back to our example, imagine if instead of using the command \texttt{\textbf{./runanalysis}} to execute the software, you used something like the following.
+\\ \\
+\begin{minted}[bgcolor=terminalbg]{text}
 ./runanalysis reads.bam genes.bed 0.5 report.txt
-\end{verbatim}
-That way if you want to analyze different input files (\texttt{uni-reads.bam} and \texttt{genes-hq.bed} for example) or a different cutoff value (\texttt{0.75} for example), you would not have to change the program's source code---instead, you would change the command you run on the command line like so.
-\begin{verbatim}
+\end{minted}
+\\
+That way if you want to analyze different input files (\texttt{\textbf{uni-reads.bam}} and \texttt{\textbf{genes-hq.bed}} for example) or a different cutoff value (\texttt{\textbf{0.75}} for example), you would not have to change the program's source code---instead, you would change the command you run on the command line like so.
+\\ \\
+\begin{minted}[bgcolor=terminalbg]{text}
 ./runanalysis uni-reads.bam genes-hq.bed 0.75 report.txt
-\end{verbatim}
+\end{minted}
+\\
 The values on the command line that follow the name of the script or program that you run are called \textbf{arguments}.
 Every programming language provides a way to accessing these arguments from within your script or program.
 One very simple thing you can do to improve the usability and re-usability of your program is to use arguments to store the value of your input and output files, rather than ``hard-coding" those filenames directly in your source code.
 
 \subsection{Options and option parsing}
-In the previous example, we used a command line argument to set a cutoff value to be used by the program. Imagine if you later decide that there are 5 or 6 additional program parameters that you would like to be able to set from the command line. Are you going to have to provide 9 or 10 arguments to the \texttt{runanalysis} program every time you run it? How will you remember the correct order of the arguments?
+In the previous example, we used a command line argument to set a cutoff value to be used by the program. Imagine if you later decide that there are 5 or 6 additional program parameters that you would like to be able to set from the command line. Are you going to have to provide 9 or 10 arguments to the \texttt{\textbf{runanalysis}} program every time you run it? How will you remember the correct order of the arguments?
 
-One common approach to addressing this issue is the use of \textbf{options} and \textbf{option parsing}. Options are simply command-line arguments (typically grouped in key/value pairs), while option parsing refers to the process of reading the command-line arguments and adjusting program settings as needed. Using option parsing for your program means that you set default values for certain settings in your program, and you only need to provide values for those settings on the command line if you want to use something different from the default. For example, if we used option parsing in our hypothetical script, we could set \texttt{0.5} as the default value for the cutoff, and \texttt{report.txt} as the default value for the output file. Executing the command
-\begin{verbatim}
+One common approach to addressing this issue is the use of \textbf{options} and \textbf{option parsing}. Options are simply command-line arguments (typically grouped in key/value pairs), while option parsing refers to the process of reading the command-line arguments and adjusting program settings as needed. Using option parsing for your program means that you set default values for certain settings in your program, and you only need to provide values for those settings on the command line if you want to use something different from the default. For example, if we used option parsing in our hypothetical script, we could set \texttt{\textbf{0.5}} as the default value for the cutoff, and \texttt{\textbf{report.txt}} as the default value for the output file. Executing the command
+\\ \\
+\begin{minted}[bgcolor=terminalbg]{text}
 ./runanalysis --cutoff=0.75 --output=new-report.txt reads.bam genes.bed
-\end{verbatim}
+\end{minted}
+\\
 would override the defaults for both the cutoff and the output file, the command
-\begin{verbatim}
+\\ \\
+\begin{minted}[bgcolor=terminalbg]{text}
 ./runanalysis --cutoff=0.75 reads.bam genes.bed
-\end{verbatim}
+\end{minted}
+\\
 would override only the cutoff, the command
-\begin{verbatim}
+\\ \\
+\begin{minted}[bgcolor=terminalbg]{text}
 ./runanalysis --output=new-report.txt reads.bam genes.bed
-\end{verbatim}
+\end{minted}
+\\
 would override only the output file, whereas the command
-\begin{verbatim}
+\\ \\
+\begin{minted}[bgcolor=terminalbg]{text}
 ./runanalysis reads.bam genes.bed
-\end{verbatim}
+\end{minted}
+\\
 would use the defaults for both. Note that in each case, the names of the input files had to be provided explicitly, and in the correct order. In option parsing, these are called \textbf{positional arguments}. A good (and commonly used) interface design is to use a mix of options and positional arguments: positional arguments for values that \textit{must} be provided and for which no suitable default can be used (such as the name of a data file), and options for program parameters for which a reasonable default can be used, which any given user may or may not want to override.
 
 All common programming languages include libraries for parsing arguments, and they are usually pretty flexible in their support of different conventions for option syntax, such as the following.
-
-\begin{minted}{bash}
+\\ \\
+\begin{minted}[bgcolor=terminalbg]{bash}
 # Each option has the form `-xyyyy', where `-x' is a key uniquely identifying
 # the option and `yyyy' is the supplied value for that option
 yourprogram -mupdate -onew.csv input.dat
 
-# Same as previous example, but with a space between the option key and the option value
+# Same as previous example, but with a space between the option key and the
+# option value
 yourprogram -m update -o new.csv input.dat
 
 # Longer, more descriptive option keys, separated from values with a space
 yourprogram --mode update --output new.csv input.dat
 
-# Longer, more descriptive option keys, separated from values with a `=' character
+# Longer, more descriptive option keys, separated from values with a `='
+# character
 yourprogram --mode=update --output=new.csv input.dat
 
-# Many option parsers will even allow you to specify both short and long keys for each option
+# Many option parsers will even allow you to specify both short and long keys
+# for each option
 yourprogram --mode update -o new.csv input.dat
 \end{minted}
+\\
 
 The appendix provides examples for how to use readily available option parsers in a variety of common programming languages.
 
@@ -97,13 +116,16 @@ The appendix provides examples for how to use readily available option parsers i
 Command-line options and arguments can provide a usable and flexible interface, but only to a point. There is an inverse relationship between the number of arguments as user is expected to provide and the usability of the interface---that is, more arguments, less usability (more frustration, more chances for mistakes, etc). If your software expects the user to explicitly provide values for tens of program parameters, then arguments and options may not provide the best interface. Instead, you may consider using a configuration file: a plain text file in which the user sets values for program parameters.
 
 Consider another hypothetical program, which is run using the following command.
-\begin{verbatim}
+\\ \\
+\begin{minted}[bgcolor=terminalbg]{text}
 ./simulation 1000 10000 5000 0.6666 2.5 0.2 0.0001 -1.37 25000 bayes obs.dat spec.dat
-\end{verbatim}
+\end{minted}
+\\
 With 12 arguments, this command is beginning to get pretty bulky.
 It is already hard to read, and typing out the command on the command line is error-prone.
 Imagine instead if we modified the program so that it read parameter values from a configuration file...
-\begin{minted}{text}
+\\ \\
+\begin{minted}[bgcolor=terminalbg]{text}
 xlim:      1000
 ylim:      10000
 zlim:      5000
@@ -117,46 +139,61 @@ method:    bayes
 observe:   obs.dat
 spectra:   spec.dat
 \end{minted}
+\\
 ...and was executed on the command line like this.
-\begin{verbatim}
+\\ \\
+\begin{minted}[bgcolor=terminalbg]{text}
 ./simulation sim.conf
-\end{verbatim}
+\end{minted}
+\\
 You could even implement a hybrid approach, where most parameters are set in the config file but some options/arguments are still passed via the command line.
-\begin{verbatim}
+\\ \\
+\begin{minted}[bgcolor=terminalbg]{text}
 ./simulation --conf sim.conf --out results.sim obs.dat spec.dat
-\end{verbatim}
+\end{minted}
+\\
 
 The config file approach removes the complexity of parameter configuration from the command line and delegates it primarily to a configuration file. Of course this has its pros and cons. On one hand, it is less likely you will be able to run the program on multiple data sets without editing the config file or creating a new one (very similar to one of the original motivating use cases). On the other hand, complex parameter configurations can be easier to manage in a text editor than on the command line, and a configuration file provides a record of the particular analysis performed which is readily available for future reference.
 
 How many arguments/options is too many for the command line? At what point is it better to use a configuration file? There is no one right answer to this question, as it depends on a variety of factors (not the least of which is your preference as the scientist writing the software). It is safe to say that a complex program with hundreds of parameters should definitely use a configuration file, whereas for a relatively simple program with 3-5 parameters a config file is probably overkill. As you evaluate the alternatives, consider the parameters for which reasonable default values can be determined, as this can drastically reduce the complexity of the interface as well as the user's configuration task.
 
 \section{Standard input (stdin), standard output (stdout), and standard error (stderr)}
-Many data processing tasks can be broken down into a sequence of smaller tasks. The output of one data processing subtask serves as the input for the next subtask. Many programs and UNIX commands write their output to the terminal by default. The \texttt{print} function and its relatives found in all common programming languages allow you to print to the terminal in two ways: the standard output (\texttt{stdout}) and the standard error (\texttt{stderr}). When running a program on the command line, you can use the \texttt{>} symbol to redirect any output written to \texttt{stdout} or \texttt{stderr} to a file for subsequent processing (see this quick demo at \url{http://ascii.io/a/2235}).
+Many data processing tasks can be broken down into a sequence of smaller tasks. The output of one data processing subtask serves as the input for the next subtask. Many programs and UNIX commands write their output to the terminal by default. The \texttt{\textbf{print}} function and its relatives found in all common programming languages allow you to print to the terminal in two ways: the standard output (\texttt{\textbf{stdout}}) and the standard error (\texttt{\textbf{stderr}}). When running a program on the command line, you can use the \texttt{\textbf{>}} symbol to redirect any output written to \texttt{\textbf{stdout}} or \texttt{\textbf{stderr}} to a file for subsequent processing (see this quick demo at \url{http://ascii.io/a/2235}).
 
-However, an alternative to writing output to intermediate files for subsequent processing tasks is to direct the output of one program or command directly into another program or command using the \texttt{|} symbol (pipe). This paradigm is commonly used by UNIX commands. Consider the following set of commands.
-
-\begin{minted}{text}
+However, an alternative to writing output to intermediate files for subsequent processing tasks is to direct the output of one program or command directly into another program or command using the \texttt{\textbf{|}} symbol (pipe). This paradigm is commonly used by UNIX commands. Consider the following set of commands.
+\\ \\
+\begin{minted}[bgcolor=terminalbg]{text}
 cut -f 3 input.txt > output1.txt
 sort output1.txt > output2.txt
 uniq -c output2.txt > output3.txt
 sort -rn output3.txt > finaloutput.txt
 \end{minted}
+\\
 Four processing commands are run, and 3 intermediate files are created in the process. Now consider the alternative approach to performing the same processing task.
-\begin{verbatim}
+\\ \\
+\begin{minted}[bgcolor=terminalbg]{text}
 cut -f 3 input.txt | sort | uniq -c | sort -rn > finaloutput.txt
-\end{verbatim}
+\end{minted}
+\\
 This single command produces the same output as the original 4 commands.
 
-Implementing your software so that the user can choose whether output is written to a file or to the terminal is one way to improve a program`s command-line interface, especially if the output can be processed line-by-line. This enables users to easily stitch your program together with other programs or shell commands. You can further improve the program's CLI by enabling the user to choose whether to read input from a file or from the standard input (data redirected from another command using the \texttt{|} symbol or from a file using the \texttt{<} symbol).
+Implementing your software so that the user can choose whether output is written to a file or to the terminal is one way to improve a program`s command-line interface, especially if the output can be processed line-by-line. This enables users to easily stitch your program together with other programs or shell commands. You can further improve the program's CLI by enabling the user to choose whether to read input from a file or from the standard input (data redirected from another command using the \texttt{\textbf{|}} symbol or from a file using the \texttt{\textbf{<}} symbol).
 
 \section{Usage statement}
-When distributing software, it is imperative to provide documentation along with the code (often stored in \texttt{README} files). Additionally, it is also a common software design practice to implement a ``usage statement" to provide additional, easy access documentation. If the program is executed with the wrong number of arguments, or if the user includes a special flag (typically an option such as \texttt{-h} or \texttt{--help}), then instead of trying to run the program will print a short message to the terminal including a reminder of what arguments the program expects and a description of any parameters that can be adjusted via options. This provides a good reminder not only for others but also for you as the developer and user of your own software!
+When distributing software, it is imperative to provide documentation along with the code.
+Of course this is not just an interface issue---providing a description of the software's intended purpose, expected inputs, and how to interpret the results is all very important.
+One common best practice is to provide a brief comment (no more than a phrase/sentence) summarizing the program's purpose at the top of the source code file, and additional notes in \texttt{\textbf{README}} files and/or manuals distributed with the code.
+
+The most common way of documenting a program's command-line interface is to provide a usage statement.
+A usage statement is a concise statement issued by the program itself, showing by example how to execute the program and providing a brief description of the command-line options.
+Typically, the usage statement should be issued if the program is executed with the wrong number of arguments, or if the user includes a special flag (typically an option such as \texttt{\textbf{-h}} or \texttt{\textbf{--help}}).
+The usage statement serves simultaneously as a reminder for experienced users of a software package, and as a quick reference for new users.
 
 Below is an example of what a program's usage statement might look like on the command line.
-
-\begin{minted}{text}
-[standage@lappy ~] talesf --help
-Usage: talesf [options] genomeseq ``rvdseq"
+\\ \\
+\begin{minted}[mathescape, bgcolor=terminalbg]{text}
+standage@lappy$ talesf --help
+Usage: talesf [options] genomeseq "rvdseq"
   Options:
     -f|--forwardonly      only search the forward strand of the genomic sequence
     -h|--help             print this help message and exit
@@ -168,8 +205,9 @@ Usage: talesf [options] genomeseq ``rvdseq"
     -w|--weight           user-defined weight; default is 0.9
     -x|--cutoffmult       multiple of best score at which potential sites will be
                           filtered; default is 3.0
-[standage@lappy ~]
+standage@lappy$
 \end{minted}
+\\
 
 \section{Appendix: CLI templates}
 The following examples show the same command-line interface implemented in several programming languages. The programs don't actually do anything other than read options in from the command line. They are intended primarily to serve as a template or reference for implementing a CLI for your own program.
