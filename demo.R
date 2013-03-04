@@ -50,7 +50,7 @@ if( !is.null(opt$out) )
   )
 }
 
-# it is very uncommon to parse input line-by-line in R, we we'll use a common
+# it is very uncommon to parse input line-by-line in R, so we'll use a common
 # import function; if you do want/need to parse input line-by-line, you may want
 # to consider whether R is the right tool for the job
 data <- read.table(opt$in, header=FALSE, sep=',')
