@@ -18,8 +18,6 @@ def print_usage(outstream):
 
 # Option defaults
 dofilter = False
-infile = None
-instream = sys.stdin
 outfile = None
 outstream = sys.stdout
 strand = 0
@@ -50,6 +48,8 @@ for key, value in options:
   else:
     assert False, "unsupported option '%s'" % key
 
+infile = None
+instream = None
 if len(args) > 0:
   infile = args[0]
   try:
@@ -58,6 +58,12 @@ if len(args) > 0:
     print >> sys.stderr, "error opening input file %s" % infile
     print >> sys.stderr, e
     sys.exit(1)
+elif sys.stdin.isatty():
+  instream = sys.stdin
+else:
+  print sys.stderr, "error: please provide input with file or standard input"
+  print_usage(sys.stderr)
+  sys.exit(1)
 
 for line in instream:
   line.rstrip()

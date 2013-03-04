@@ -85,7 +85,7 @@ int main(int argc, char **argv)
 
   int numargs = argc - optind;
   const char *infile = NULL;
-  FILE *instream = stdin;
+  FILE *instream;
   if(numargs > 0)
   {
     infile = argv[optind];
@@ -95,6 +95,16 @@ int main(int argc, char **argv)
       fprintf(stderr, "error opening input file '%s'\n", infile);
       return 1;
     }
+  }
+  else if(isatty(fileno(stdin)))
+  {
+    instream = stdin;
+  }
+  else
+  {
+    fprintf(stderr, "error: please provide input with argument or standard input");
+    print_usage(stderr);
+    return 1;
   }
   
   char buffer[MAX_LINE_WIDTH];

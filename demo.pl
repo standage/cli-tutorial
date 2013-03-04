@@ -38,12 +38,22 @@ if($outfile ne "")
   open($outstream, ">", $outfile) or die("error opening output file $outfile");
 }
 
-my $instream = \*STDIN;
+my $instream;
 my $infile = "";
 if(scalar(@ARGV) > 0)
 {
   $infile = shift(@ARGV);
   open($instream, "<", $infile) or die("error opening input file $infile");
+}
+elsif(-t STDIN)
+{
+  $instream = \*STDIN;
+}
+else
+{
+  print STDERR "error: please provide input with argument or standard input";
+  print_usage(\*STDERR);
+  exit(1);
 }
 
 while(my $line = <$instream>)
