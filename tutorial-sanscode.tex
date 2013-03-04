@@ -210,7 +210,15 @@ standage@lappy$
 \\
 
 \section{Appendix: CLI templates}
-The following examples show the same command-line interface implemented in several programming languages. The programs don't actually do anything other than read options in from the command line. They are intended primarily to serve as a template or reference for implementing a CLI for your own program.
+The following examples show the same command-line interface implemented in several programming languages.
+The programs don't actually do anything other than read options in from the command line.
+They are intended primarily to serve as a template or reference for implementing a CLI for your own program.
+
+Note that these examples use the canonical module for option parsing for that given language.
+Some languages have alternative modules (such as \texttt{\textbf{argparse}} and \texttt{\textbf{docopt}} for Python and \texttt{\textbf{optparse}} for R) that can simplify the process of coding and documenting your CLI.
+However, the price of convenience is the flexibility and control you will sacrifice when you use these alternative packages.
+Additionally, these alternatives are not as stable as the canonical package and require separate installation.
+You should consider that each external dependency you add to your software makes it more likely that someone will give up trying to use your software simply because they don't want to deal with the hassle of installing prerequisites.
 
 \subsection{Perl CLI}
 
