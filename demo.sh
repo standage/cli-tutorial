@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# demo.sh: template for parsing command-line options in Bash
+# demo.sh: template for a Bash command-line interface
+set -eo pipefail
 
 print_usage()
 {
@@ -7,7 +8,7 @@ print_usage()
 Usage: demo.sh [options] data.txt
   Options:
     -f    apply strict filtering
-    -h    print this help message and exit
+    -h    show this help message and exit
     -o    file to which output will be written; default is terminal (stdout)
     -s    strand to search; provide a positive number for the forward strand,
           a negative number for the reverse strand, or 0 for both strands;
